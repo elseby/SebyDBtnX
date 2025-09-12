@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>SebyDBtn Config</title>
+    <style>.lbl {
+        width: 85px;
+    }
+
+    .dvc {
+        display: flex;
+    }
+
+    .dbtn {
+        border: 1px solid gray;
+        width: 215px;
+        padding: 2px;
+    }
+    </style>
+    <script>
+        const getEmptyCmd =()=> ({e: "", c: ["", ""], w: "", i: "", lp:""})
+        let data = {ledprofiles:[],buttons:[[], [], [], [], [], [], [], []]};
+        const getE = (id) => document.getElementById(id);
+
+        function newElement(tag, addTo, inHtml, attrs) {
+            let el = document.createElement(tag);
+            if (addTo) addTo.append(el)
+            if (inHtml) el.innerHTML = inHtml
+            if (attrs) {
+                Object.keys(attrs).forEach(k => el.setAttribute(k, attrs[k]))
+            }
+            return el
+        }
+
+        const appendOption = (selectElement, currentValue, ...s) => {
+            for (let i = 0; i < s.length; i += 2) {
+                const e = document.createElement("option");
+                e.value = s[i];
+                e.innerHTML = s[i + 1];
+                selectElement.append(e);
+                if (currentValue === s[i]) {
+                    e.setAttribute("selected", "1")
+                }
+            }
+        }
+
+        function getInfo() {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = (t, e) => {
+                if (xhr.status === 200) {
+                    let t = xhr.responseText
+                    try {
+                        data = JSON.parse(t);
+                        drawByData();
+                    } catch (e) {
+                        console.log(t)
+                        console.error(e)
+                    }
+                }
+            };
+            xhr.open("GET", "/chinfo", true);
+            xhr.send();
+        }
+
+        function save(idbtn) {
+            const p = {btn: idbtn, lp:data.ledprofiles[idbtn]}
+            for (let idcmd = 0; idcmd < data.buttons[idbtn].length; idcmd++) {
+                let cmd=data.buttons[idbtn][idcmd]
+                console.log(cmd)
+                if (cmd.e && cmd.c[0] && cmd.w) {
+                    p["e" + idcmd] = cmd.e;
+                    p["c0" + idcmd] = cmd.c[0];
+                    if(cmd.c[1]) p["c1" + idcmd] = cmd.c[1];
+                    p["w" + idcmd] = cmd.w;
+                    if (cmd.i) p["i" + idcmd] = cmd.i;
+                }
+
+            }
+            getE("resp").innerHTML = "Sending..."
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = (t, e) => {
+                if (xhr.status === 200) {
+                    getInfo();
+                } else {
+                    getE("resp").innerHTML = xhr.responseText
+                }
+            };
+            xhr.open("POST", "/", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            const body = new URLSearchParams(p);
+            xhr.send(body.toString());
+        }
+
+        function setV(idbtn, idcmd, idel) {
+            console.log(idbtn, idcmd, idel)
+            let e = getE('"+id+"').value
+        }
+
+        function selAttr(idbtn, idcmd, obj) {
+            let onchange = obj ? `
+                    data.buttons[${idbtn}][${idcmd}].${obj}=this.value;
+                    drawCmd(${idbtn}, ${idcmd});
+                ` : undefined;
+            return {style: "width:100%;", onchange }
+        }
+
+        function drawEvType(idbtn, idcmd, cmd, el) {
+            let csel = newElement("select", el, null, selAttr(idbtn,idcmd,"e"))
+            appendOption(csel, cmd.e || "",
+                "", "-",
+                "30", "Press Down",
+                "35", "Press Up",
+                "5", "Single Click",
+                "10", "Double Click",
+                "15", "Long Press Start",
+                "20", "Long Press Hold",
+                "25", "Long Press Up",
+            );
+        }
+
+        function drawCmdSel(idbtn, idcmd, cmd, el) {
+            let csel = newElement("select", el, null, selAttr(idbtn,idcmd,"c[0]"))
+            let s = "Switch "
+            let d = "Dimmer "
+            let c = "Cover "
+            let b = "Blinking on "
+            let ot = "ON timed "
+            appendOption(csel, cmd.c[0] || "",
+                "", "-",
+                "ff", s + "Toggle",
+                "01", s + "OFF",
+                "00", s + "ON",
+                "16", s + ot + "1 Min",
+                "26", s + ot + "2 Min",
+                "36", s + ot + "3 Min",
+                "46", s + ot + "4 Min",
+                "56", s + ot + "5 Min",
+                "66", s + ot + "15 Min",
+                "76", s + ot + "30 Sec",
+                "86", s + ot + "0.5 Sec",
+                "0b", s + b + "0.5 sec",
+                "1b", s + b + "1 sec",
+                "2b", s + b + "1.5 sec",
+                "3b", s + b + "2 sec",
+                "4b", s + b + "2.5 sec",
+                "5b", s + b + "3 sec",
+                "6b", s + b + "3.5 sec",
+                "7b", s + b + "4 sec",
+                "8b", s + b + "4.5 sec",
+                "9b", s + b + "5 sec",
+                "0a", c + "Stop",
+                "08", c + "Up",
+                "09", c + "Down",
+                "1d", d + "20%",
+                "2d", d + "30%",
+                "3d", d + "40%",
+                "4d", d + "50%",
+                "5d", d + "60%",
+                "6d", d + "70%",
+                "7d", d + "80%",
+                "8d", d + "90%",
+                "9d", d + "100%",
+                "03", d + "+1",
+                "04", d + "-1",
+                "cd","CEN Command"
+            );
+
+        }
+
+        function drawCenBtn(idbtn, idcmd, cmd, el) {
+            let csel = newElement("select", el, null, selAttr(idbtn, idcmd, 'c[1]'))
+            let e = ["", "-"];
+            Array.from(Array(31).keys()).forEach(v1 => {
+                e.push(`${v1<10?'0':''}${v1+1}`, `Button ${v1+1}`);
+            })
+            appendOption(csel, cmd.c[1] || "", ...e);
+        }
+
+        function drawWh(idbtn, idcmd, cmd, el) {
+            let iscen = cmd.c[0]==="cd"
+            let csel = newElement("select", el, null, selAttr(idbtn, idcmd, 'w'))
+            let e = ["", "-"];
+            if(!iscen) e.push("b100", "General");
+            Array.from(Array(9).keys()).forEach(v1 => {
+                Array.from(Array(9).keys()).forEach(v2 => e.push('' + (v1 + 1) + (v2 + 1) + '00', 'Point ' + (v1 + 1) + (v2 + 1)));
+                if(!iscen) {
+                    ['a', 'b', 'c', 'd', 'e', 'f'].forEach(v3 => e.push('' + (v1 + 1) + v3 + '00', 'Point ' + (v1 + 1) + v3));
+                }
+            })
+            if(!iscen) {
+                Array.from(Array(9).keys()).forEach(v => e.push('b30' + (v + 1), 'Ambient ' + (v + 1)))
+                Array.from(Array(9).keys()).forEach(v => e.push('b50' + (v + 1), 'Group ' + (v + 1)))
+            }
+            appendOption(csel, cmd.w || "", ...e);
+        }
+
+        function drawInt(idbtn, idcmd, cmd, el) {
+            let csel = newElement("select", el, null, selAttr(idbtn, idcmd, 'i'))
+            appendOption(csel, cmd.i || "00",
+                "00", "Local Bus",
+                "01", "Interface 1",
+                "02", "Interface 2",
+                "03", "Interface 3",
+                "04", "Interface 4",
+                "05", "Interface 5",
+                "06", "Interface 6",
+                "07", "Interface 7",
+                "08", "Interface 8",
+                "09", "Interface 9",
+                "ff", "Master bus"
+            );
+        }
+
+        function drawCmd(idbtn, idcmd) {
+            let bcmds = data.buttons[idbtn]
+            let dbtn = getE(`bt${idbtn}`)
+            let idEl = `cmd_${idbtn}_${idcmd}`
+            let dct = getE(idEl)
+            if (dct) {
+                dct.parentElement.removeChild(dct);
+            }
+                dct = newElement("div", dbtn, null, {id: `cmd_${idbtn}_${idcmd}`})
+                newElement("div", dct, "Command " + (idcmd + 1), {style: "border-top: 3px solid gray;"})
+
+            let cmd = bcmds.length > idcmd ? bcmds[idcmd] : getEmptyCmd()
+            let lbAtt = {class: "lbl"}
+            let dvcAtt = {class: "dvc"}
+
+            let devt = newElement("div", dct, null, dvcAtt)
+            newElement("div", devt, "Event", lbAtt)
+            drawEvType(idbtn, idcmd, cmd, devt)
+
+            if(!cmd.e) return;
+
+            let dwha = newElement("div", dct, null, dvcAtt)
+            newElement("div", dwha, "What", lbAtt)
+            drawCmdSel(idbtn, idcmd, cmd, dwha)
+
+            if (!cmd.c[0]) return;
+
+            if(cmd.c[0]==="cd"){
+                let dcenbtn = newElement("div", dct, null, dvcAtt)
+                newElement("div", dcenbtn, "Button", lbAtt)
+                drawCenBtn(idbtn, idcmd, cmd, dcenbtn)
+            }
+
+            let dwh = newElement("div", dct, null, dvcAtt)
+            newElement("div", dwh, "Where", lbAtt)
+            drawWh(idbtn, idcmd, cmd, dwh)
+
+            if (!cmd.w) return;
+
+            let dint = newElement("div", dct, null, dvcAtt)
+            newElement("div", dint, "Interface", lbAtt)
+            drawInt(idbtn, idcmd, cmd, dint)
+        }
+
+        function addCmd(idbtn) {
+            let l = data.buttons[idbtn].length;
+            if(l<10){
+                data.buttons[idbtn][l] = getEmptyCmd();
+                drawCmd(idbtn, l)
+            }
+        }
+
+        function remCmd(idbtn) {
+            let l = data.buttons[idbtn].length;
+            if(l>1) data.buttons[idbtn].splice(l-1,1)
+            drawByData(idbtn, l)
+        }
+
+        function drawByData() {
+            let btndiv = getE("btndiv")
+            btndiv.replaceChildren();
+            ["b03", "b47"].forEach(id =>
+                newElement("div", btndiv, null, {id, style: "display:flex; flex-wrap:wrap; margin: 5px 0;"})
+            )
+            data.buttons.forEach((btn, idbtn) => {
+                let dbtn = newElement("div", getE(idbtn < 4 ? "b03" : "b47"), null)
+                dbtn.setAttribute("class", "dbtn")
+                newElement("div", dbtn, "Button " + (idbtn + 1), {style: "font-weight: bold"})
+                newElement("div", dbtn, null, {id: "bt" + (idbtn)})
+                btn.forEach((btn, idcmd) => {
+                    drawCmd(idbtn, idcmd)
+                })
+
+                let lbAtt = {class: "lbl"}
+                let dvcAtt = {class: "dvc",style: "border-top: 1px solid gray; margin-top:5px;", title:"Led profile selection"}
+                let lpdiv = newElement("div", dbtn, null, dvcAtt)
+                newElement("div", lpdiv, "Led", lbAtt)
+                let onchange = `
+                    data.ledprofiles[${idbtn}]=this.value;
+                    drawByData();
+                `;
+                let lpsel = newElement("select", lpdiv, null, {style: "width:100%;", onchange } )
+                appendOption(lpsel, data.ledprofiles[idbtn] || "00",
+                    "00", "Default",
+                    "01", "OFF",
+                    "02", "White",
+                    "03", "Blue-Purple",
+                    "04", "Blue-Orange"
+                );
+
+                newElement("button", dbtn, "-", {
+                    id: "btnrem" + idbtn,
+                    style: "margin:0 10px 0 3px;",
+                    onclick: "remCmd(" + idbtn + ")"
+                })
+                newElement("button", dbtn, "+", {
+                    id: "btnadd" + idbtn,
+                    style: "margin:15px 3px 0 0;",
+                    onclick: "addCmd(" + idbtn + ")"
+                })
+                newElement("button", dbtn, "Save", {id: `btnsave${idbtn}`, onclick: "save(" + idbtn + ")"})
+            })
+            newElement("div", btndiv, `Date:${data.app.date} ${data.app.time} Version:${data.app.ver}`)
+        }
+
+        const init = () => {
+            getInfo()
+            // drawByData()
+        }
+    </script>
+</head>
+<body onload="init()">
+<h1>SebyDBtn Config</h1>
+<div id="btndiv" style="margin: 10px 0;"></div>
+<div id="resp" style="margin:10px 0"></div>
+<div style="display: flex">
+    <form method="post">
+        <input type="submit" name="scmd" value="REBOOT"/>
+    </form>
+</div>
+<div style="margin-top:20px">
+    <a href="" onclick="window.location.reload(true)">Reload</a>
+    <a href="/update">Firmware Update</a>
+</div>
+</body>
+</html>
