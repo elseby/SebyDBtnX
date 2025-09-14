@@ -1,11 +1,11 @@
 # SebyDBtnX – Open Source Home Automation Device
 
-![SebyDBtnX Device Image](images/SebyDBtnx_1.png)
-
 **SebyDBtnX** is an open-source home automation project designed to integrate seamlessly with the **Bticino MyHome** system.  
 It enables control of actuators such as **lights**, **roller shutters**, and **CEN commands** directly on the bus.
 
----
+![SebyDBtnX Device Image](images/SebyDBtnx_1.png)
+![SebyDBtnX Device Image](images/SebyDBtnx_2.png)
+
 
 ## ✨ Features
 - Control actuators on the Bticino MyHome bus  
@@ -29,6 +29,7 @@ It enables control of actuators such as **lights**, **roller shutters**, and **C
   - Provides onboard switching power supply  
 - Compact PCB designed for easy integration  
 
+![PCB Image](images/3D_SebyDBtn4_PCB_3.0_back.png)
 ![PCB Image](images/3D_SebyDBtn4_PCB_3.0_front.png)
 
 ---
