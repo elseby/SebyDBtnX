@@ -1,0 +1,11 @@
+-Mounted PCB (4 or 8 buttons)
+	you can made by yourself using gerber and bom files into "pcb" directory
+-Printed parts
+	you can print by yourself using stl files, you need:
+	-Front and Back cover ex: SebyDBtn8_MainBody_V3.0.stl (x1) + SebyDBtn8_BackCover_V3.0.stl (x1)
+	-printed button with 2 light guides for each button
+		(for example SebyDBtnx_Key_Light_1pos_V3.0.stl (x4) and SebyDBtnx_LightGuide_1pos_V3.0.stl (x8)
+-2 springs for each button
+	6mm diameter and 5mm height (0.3 / 0.5mm wire diameter)
+	( https://it.aliexpress.com/item/1005001408294215.html?spm=a2g0o.order_list.order_list_main.21.30db3696f9J1DS&gatewayAdapt=glo2ita )
+-1.5mm diameter stainless steel rods (to be cut to the right size)
